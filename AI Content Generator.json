@@ -1,0 +1,152 @@
+{
+  "name": "AI Content Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f936fe0f-cd58-4a73-90ec-71b86a24dbfc",
+      "name": "When clicking Execute Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "topic",
+              "value": "5 tips for growing a small business on Instagram",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "platform",
+              "value": "LinkedIn",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "tone",
+              "value": "Professional and engaging",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "language",
+              "value": "English",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "content_type",
+              "value": "Social media post with hashtags",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ff08354-6a29-4bc2-86a7-a119452d879c",
+      "name": "Set Content Details",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const response = item.json;\n\n  const generatedContent =\n    response.candidates?.[0]?.content?.parts\n      ?.map(part => part.text || \"\")\n      .join(\"\\n\")\n      .trim();\n\n  if (!generatedContent) {\n    throw new Error(\"Gemini generated content not found. Check API response.\");\n  }\n\n  return {\n    json: {\n      ...response,\n      generatedContent: generatedContent\n    }\n  };\n});"
+      },
+      "id": "18532e4a-aca7-4a3e-b417-c4919a104941",
+      "name": "Format Generated Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-goog-api-key",
+              "value": ""
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Create a professional social media post with hashtags. Topic: {{$json.topic}}. Platform: {{$json.platform}}. Tone: {{$json.tone}}. Language: {{$json.language}}. Content type: {{$json.content_type}}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "d103b64c-b041-40a4-864b-faa860f169a2",
+      "name": "Generate Content with Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set Content Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Content Details": {
+      "main": [
+        [
+          {
+            "node": "Generate Content with Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Content with Gemini": {
+      "main": [
+        [
+          {
+            "node": "Format Generated Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "b1ad815c-4e38-4756-b9e3-828d0fc20616",
+  "meta": {
+    "instanceId": "90036cc8f7ed14d7779096f019ecc0949ab09ed17b3987c78c8a5a91d3c018d5"
+  },
+  "nodeGroups": [],
+  "id": "Edfy6kuDJNFmMv1r",
+  "tags": []
+}
